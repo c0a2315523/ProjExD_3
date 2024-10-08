@@ -151,12 +151,14 @@ class Score:
         self.img = self.fonto.render(f"スコア:{self.score}",True,self.color)
         screen.blit(self.img,self.rct)
 
+
+
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
-    beam = None
+    beams=[]
     bomb = Bomb((255, 0, 0), 10)
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
     clock = pg.time.Clock()
@@ -168,9 +170,10 @@ def main():
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 # スペースキー押下でBeamクラスのインスタンス生成
-                beam = Beam(bird)           
+                beams.append(Beam(bird))           
         screen.blit(bg_img, [0, 0])
         
+
         for bomb in bombs:
             if bird.rct.colliderect(bomb.rct):
                # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
@@ -183,20 +186,24 @@ def main():
                 time.sleep(5)
                 return
         
-        for j, bomb in enumerate(bombs):
-            if beam is not None:
-                if beam.rct.colliderect(bomb.rct):  # ビームと爆弾が衝突したら
-                    beam, bombs[j] = None, None
-                    bird.change_img(6, screen)
-                    score.score+=1
-                    pg.display.update()              
+        for i,beam in enumerate(beams):
+            for j, bomb in enumerate(bombs):
+                if beam is not None:
+                    if beam.rct.colliderect(bomb.rct):  # ビームと爆弾が衝突したら
+                        beams[i]=None
+                        bombs[j] = None
+                        bird.change_img(6, screen)
+                        score.score+=1
+                        pg.display.update()              
         bombs = [bomb for bomb in bombs if bomb is not None]
+        beams = [beam for beam in beams if beam is not None]
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
-        if beam is not None:
-            beam.update(screen) 
-        for bomb in bombs:
+        for beam in beams: 
+            beam.update(screen)
+        
+        for bomb in bombs: 
             bomb.update(screen)
         score.update(screen)
         pg.display.update()
